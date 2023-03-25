@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Vocubo</string>
+    <string name="app_version">0.1.0</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="login_unsuccessful">Login not successful</string>
+    <string name="practice">Practice</string>
+    <string name="logout">Logout</string>
+    <string name="about">About</string>
+    <string name="preferences">Preferences</string>
+    <string name="about_description">A simple Vocabulary trainer</string>
+    <string name="about_copyright">© 2023, Markus Popp</string>
+    <string name="language">Language</string>
+    <string name="send">Send</string>
+    <string name="next">Next</string>
+    <string name="finish">Finish</string>
+    <string name="answer_false">Answer is false. Correct is </string>
+    <string name="answer_correct">Answer is correct.</string>
+
+    <string-array name="language_array">
+        <item>System</item>
+        <item>English</item>
+    </string-array>
+</resources>
