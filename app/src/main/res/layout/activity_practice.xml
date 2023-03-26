@@ -67,6 +67,7 @@
         android:layout_marginTop="16dp"
         android:textSize="16sp"
         android:visibility="invisible"
+        android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edAnswer" />
@@ -75,11 +76,11 @@
         android:id="@+id/bnNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="24dp"
         android:text="@string/next"
         android:visibility="invisible"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvResult" />
 
     <Button
@@ -90,7 +91,7 @@
         android:text="@string/finish"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/bnNext"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/bnNext" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/bnNext" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

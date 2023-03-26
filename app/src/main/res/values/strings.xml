@@ -17,6 +17,7 @@
     <string name="finish">Finish</string>
     <string name="answer_false">Answer is false. Correct is </string>
     <string name="answer_correct">Answer is correct.</string>
+    <string name="your_answer">Your answer</string>
 
     <string-array name="language_array">
         <item>System</item>

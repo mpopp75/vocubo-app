@@ -157,7 +157,11 @@ public class PracticeActivity extends AppCompatActivity {
                                 tvResult.setText(R.string.answer_correct);
                             } else {
                                 tvResult.setTextColor(Color.RED);
-                                tvResult.setText(getString(R.string.answer_false) + " " + correct_answer);
+
+                                String output = getString(R.string.your_answer) + ": " + edAnswer.getText().toString() + "\n\n" +
+                                        getString(R.string.answer_false) + " " + correct_answer;
+
+                                tvResult.setText(output);
                             }
                         } else {
                             throw new Exception("Unknown action error");
