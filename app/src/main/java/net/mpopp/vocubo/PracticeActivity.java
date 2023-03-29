@@ -37,6 +37,8 @@ public class PracticeActivity extends AppCompatActivity {
     private int question_id;
     private String action;
 
+    private String url = "https://vocubo.mpopp.net/ajax_requests/app_practice.php";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,64 +117,79 @@ public class PracticeActivity extends AppCompatActivity {
     }
 
     private void nextQuestion() {
-        action = "question";
-        PracticeRequests pr = new PracticeRequests(this, action, user_session);
-        pr.start();
+        HttpPostRequest request = new HttpPostRequest(url);
+        request.setParameter("session_id", user_session);
+        request.setParameter("action", "question");
+        request.execute();
+
+        processQuestionResult(request.getResult());
+    }
+
+    private void processQuestionResult(String result) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonobject = new JSONObject(result);
+
+                    Log.d(this.getClass().getSimpleName(), "httpCallback() - question");
+                    question_id = jsonobject.getInt("id");
+                    tvQuestion.setText(jsonobject.getString("word_base"));
+                    tvHint.setText(jsonobject.getString("hints"));
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     private void checkAnswer() {
         Log.d(this.getClass().getSimpleName(), "checkAnswer()");
-        action = "answer";
         String answer = edAnswer.getText().toString();
 
-        PracticeRequests pr = new PracticeRequests(this, action, question_id, answer, user_session);
-        pr.start();
+        HttpPostRequest request = new HttpPostRequest(url);
+        request.setParameter("session_id", user_session);
+        request.setParameter("action", "answer");
+        request.setParameter("question_id", String.valueOf(question_id));
+        request.setParameter("answer", answer);
+        request.execute();
+
+        processAnswerResult(request.getResult());
     }
 
-    public void httpCallback(String response) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONObject jsonobject = null;
-                    try {
-                        jsonobject = new JSONObject(response);
+    private void processAnswerResult(String result) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonobject = new JSONObject(result);
 
-                        if (action.equals("question")) {
-                            Log.d(this.getClass().getSimpleName(), "httpCallback() - question");
-                            question_id = jsonobject.getInt("id");
-                            tvQuestion.setText(jsonobject.getString("word_base"));
-                            tvHint.setText(jsonobject.getString("hints"));
-                        } else if (action.equals("answer")) {
-                            Log.d(this.getClass().getSimpleName(), "httpCallback() - answer");
-                            String correct = jsonobject.getString("correct");
-                            String correct_answer = jsonobject.getString("correct_answer");
+                    Log.d(this.getClass().getSimpleName(), "httpCallback() - answer");
+                    String correct = jsonobject.getString("correct");
+                    String correct_answer = jsonobject.getString("correct_answer");
 
-                            edAnswer.setVisibility(View.INVISIBLE);
-                            bnSend.setVisibility(View.INVISIBLE);
-                            tvResult.setVisibility(View.VISIBLE);
-                            bnNext.setVisibility(View.VISIBLE);
-                            bnFinish.setVisibility(View.VISIBLE);
-                            if (correct.equals("correct")) {
-                                tvResult.setTextColor(Color.GREEN);
-                                tvResult.setText(R.string.answer_correct);
-                            } else {
-                                tvResult.setTextColor(Color.RED);
+                    edAnswer.setVisibility(View.INVISIBLE);
+                    bnSend.setVisibility(View.INVISIBLE);
+                    tvResult.setVisibility(View.VISIBLE);
+                    bnNext.setVisibility(View.VISIBLE);
+                    bnFinish.setVisibility(View.VISIBLE);
+                    if (correct.equals("correct")) {
+                        tvResult.setTextColor(Color.GREEN);
+                        tvResult.setText(R.string.answer_correct);
+                    } else {
+                        tvResult.setTextColor(Color.RED);
 
-                                String output = getString(R.string.your_answer) + ": " + edAnswer.getText().toString() + "\n\n" +
-                                        getString(R.string.answer_false) + " " + correct_answer;
+                        String output = getString(R.string.your_answer) + ": " + edAnswer.getText().toString() + "\n\n" +
+                                getString(R.string.answer_false) + " " + correct_answer;
 
-                                tvResult.setText(output);
-                            }
-                        } else {
-                            throw new Exception("Unknown action error");
-                        }
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    } catch (Exception e) {
-                        Log.e(this.getClass().getSimpleName(), "Exception: " + e);
+                        tvResult.setText(output);
                     }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
                 }
-            });
+
+            }
+        });
     }
 
     private void returnToMainActivity() {

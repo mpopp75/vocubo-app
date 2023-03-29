@@ -80,17 +80,21 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
             case "Logout" :
                 Log.d(this.getClass().getSimpleName(), "Logout button clicked");
 
-                LogoutCheck logout = new LogoutCheck(this, user_session);
-                logout.start();
+                String url = "https://vocubo.mpopp.net/ajax_requests/app_logout.php";
 
+                HttpPostRequest request = new HttpPostRequest(url);
+                request.setParameter("session_id", user_session);
+                request.execute();
+
+                processResult(request.getResult());
                 break;
             default :
                 Log.w(this.getClass().getSimpleName(), "Unknown button clicked");
         }
     }
 
-    public void httpCallback(String response) {
-        Log.i(this.getClass().getSimpleName(), "response: " + response);
+    public void processResult(String result) {
+        Log.i(this.getClass().getSimpleName(), "result: " + result);
 
         SharedPreferences.Editor ed = pref.edit();
         ed.putInt("user_id", -1);

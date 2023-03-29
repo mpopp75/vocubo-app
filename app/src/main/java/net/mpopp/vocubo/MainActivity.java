@@ -18,9 +18,7 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener {
-
+public class MainActivity extends AppCompatActivity {
     private EditText etUserName;
     private EditText etPassword;
     private TextView tvError;
@@ -39,13 +37,27 @@ public class MainActivity extends AppCompatActivity
 
         pref = getSharedPreferences("vocubo", 0);
 
-        bnLogin.setOnClickListener(this);
-
         // lets make life a bit easier for now; autofill user/password
         Button bnFill = findViewById(R.id.bnFill);
         bnFill.setOnClickListener(v -> {
             etUserName.setText(FillValues.username);
             etPassword.setText(FillValues.password);
+        });
+
+        bnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "https://vocubo.mpopp.net/ajax_requests/app_login.php";
+                String user = etUserName.getText().toString();
+                String pass = etPassword.getText().toString();
+
+                HttpPostRequest request = new HttpPostRequest(url);
+                request.setParameter("user", user);
+                request.setParameter("pass", pass);
+                request.execute();
+
+                processResult(request.getResult());
+            }
         });
     }
 
@@ -74,18 +86,10 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public void onClick(View v) {
-        LoginCheck lc = new LoginCheck(this,
-                etUserName.getText().toString(),
-                etPassword.getText().toString());
-
-        lc.start();
-    }
-
-    public void httpCallback(String response) {
+    public void processResult(String result) {
 
         try {
-            JSONObject jsonobject = new JSONObject(response);
+            JSONObject jsonobject = new JSONObject(result);
             if ((int)jsonobject.get("user_id") == -1) {
                 // login not successful
 
