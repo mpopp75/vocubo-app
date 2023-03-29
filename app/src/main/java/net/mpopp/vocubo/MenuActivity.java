@@ -13,8 +13,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MenuActivity extends AppCompatActivity implements View.OnClickListener {
+public class MenuActivity extends AppCompatActivity
+        implements View.OnClickListener, HttpPostRequest.HttpPostRequestCallback {
 
     private String user_session;
 
@@ -80,29 +82,45 @@ public class MenuActivity extends AppCompatActivity implements View.OnClickListe
             case "Logout" :
                 Log.d(this.getClass().getSimpleName(), "Logout button clicked");
 
-                String url = "https://vocubo.mpopp.net/ajax_requests/app_logout.php";
+                String url = "https://vocubo.mpopp.net/requests/app_logout.php";
 
-                HttpPostRequest request = new HttpPostRequest(url);
+                HttpPostRequest request = new HttpPostRequest(this, url);
                 request.setParameter("session_id", user_session);
                 request.execute();
-
-                processResult(request.getResult());
                 break;
             default :
                 Log.w(this.getClass().getSimpleName(), "Unknown button clicked");
         }
     }
 
-    public void processResult(String result) {
+    @Override
+    public void onRequestComplete(String result) {
         Log.i(this.getClass().getSimpleName(), "result: " + result);
 
-        SharedPreferences.Editor ed = pref.edit();
-        ed.putInt("user_id", -1);
-        ed.putString("user_name", "");
-        ed.putString("user_session", "");
-        ed.apply();
+        try {
+            if (result.equals("1")) {
+                SharedPreferences.Editor ed = pref.edit();
+                ed.putInt("user_id", -1);
+                ed.putString("user_name", "");
+                ed.putString("user_session", "");
+                ed.apply();
 
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+            } else {
+                Log.e(this.getClass().getSimpleName(), "Logout failed");
+                makeToast();
+            }
+        } catch(NumberFormatException e) {
+            Log.e(this.getClass().getSimpleName(), "NumberFormatException: " + e);
+            makeToast();
+        } catch(Exception e) {
+            Log.e(this.getClass().getSimpleName(), "Exception: " + e);
+            makeToast();
+        }
+    }
+
+    private void makeToast() {
+        Toast.makeText(this, R.string.logout_failed, Toast.LENGTH_LONG).show();
     }
 }

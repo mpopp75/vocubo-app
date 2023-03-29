@@ -14,18 +14,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-public class PracticeActivity extends AppCompatActivity {
-
-    private SharedPreferences pref;
+public class PracticeActivity extends AppCompatActivity
+        implements HttpPostRequest.HttpPostRequestCallback {
 
     int user_id;
     private String user_session;
 
-    private TextView tvLogin;
     private TextView tvQuestion;
     private TextView tvHint;
     private EditText edAnswer;
@@ -37,14 +35,14 @@ public class PracticeActivity extends AppCompatActivity {
     private int question_id;
     private String action;
 
-    private String url = "https://vocubo.mpopp.net/ajax_requests/app_practice.php";
+    private final String url = "https://vocubo.mpopp.net/requests/app_practice.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_practice);
 
-        tvLogin = findViewById(R.id.tvLogin);
+        TextView tvLogin = findViewById(R.id.tvLogin);
         tvQuestion = findViewById(R.id.tvQuestion);
         tvHint = findViewById(R.id.tvHint);
         edAnswer = findViewById(R.id.edAnswer);
@@ -53,34 +51,21 @@ public class PracticeActivity extends AppCompatActivity {
         bnNext = findViewById(R.id.bnNext);
         bnFinish = findViewById(R.id.bnFinish);
 
-        bnNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                edAnswer.setVisibility(View.VISIBLE);
-                edAnswer.setText("");
-                bnSend.setVisibility(View.VISIBLE);
-                tvResult.setVisibility(View.INVISIBLE);
-                bnNext.setVisibility(View.INVISIBLE);
-                bnFinish.setVisibility(View.INVISIBLE);
-                nextQuestion();
-            }
+        bnNext.setOnClickListener(v -> {
+            edAnswer.setVisibility(View.VISIBLE);
+            edAnswer.setText("");
+            bnSend.setVisibility(View.VISIBLE);
+            tvResult.setVisibility(View.INVISIBLE);
+            bnNext.setVisibility(View.INVISIBLE);
+            bnFinish.setVisibility(View.INVISIBLE);
+            nextQuestion();
         });
 
-        bnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkAnswer();
-            }
-        });
+        bnSend.setOnClickListener(v -> checkAnswer());
 
-        bnFinish.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                returnToMainActivity();
-            }
-        });
+        bnFinish.setOnClickListener(v -> returnToMainActivity());
 
-        pref = getSharedPreferences("vocubo", 0);
+        SharedPreferences pref = getSharedPreferences("vocubo", 0);
         user_id = pref.getInt("user_id", -1);
         String user_name = pref.getString("user_name", "");
         user_session = pref.getString("user_session", "");
@@ -117,12 +102,11 @@ public class PracticeActivity extends AppCompatActivity {
     }
 
     private void nextQuestion() {
-        HttpPostRequest request = new HttpPostRequest(url);
+        action = "question";
+        HttpPostRequest request = new HttpPostRequest(this, url);
         request.setParameter("session_id", user_session);
-        request.setParameter("action", "question");
+        request.setParameter("action", action);
         request.execute();
-
-        processQuestionResult(request.getResult());
     }
 
     private void processQuestionResult(String result) {
@@ -136,8 +120,9 @@ public class PracticeActivity extends AppCompatActivity {
                     question_id = jsonobject.getInt("id");
                     tvQuestion.setText(jsonobject.getString("word_base"));
                     tvHint.setText(jsonobject.getString("hints"));
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    Log.e(this.getClass().getSimpleName(), "Exception: " + e);
+                    Toast.makeText(PracticeActivity.this, R.string.connection_error, Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -145,16 +130,25 @@ public class PracticeActivity extends AppCompatActivity {
 
     private void checkAnswer() {
         Log.d(this.getClass().getSimpleName(), "checkAnswer()");
+
+        action = "answer";
         String answer = edAnswer.getText().toString();
 
-        HttpPostRequest request = new HttpPostRequest(url);
+        HttpPostRequest request = new HttpPostRequest(this, url);
         request.setParameter("session_id", user_session);
-        request.setParameter("action", "answer");
+        request.setParameter("action", action);
         request.setParameter("question_id", String.valueOf(question_id));
         request.setParameter("answer", answer);
         request.execute();
+    }
 
-        processAnswerResult(request.getResult());
+    @Override
+    public void onRequestComplete(String result) {
+        if (action.equals("question")) {
+            processQuestionResult(result);
+        } else {
+            processAnswerResult(result);
+        }
     }
 
     private void processAnswerResult(String result) {
@@ -184,10 +178,10 @@ public class PracticeActivity extends AppCompatActivity {
 
                         tvResult.setText(output);
                     }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    Log.e(this.getClass().getSimpleName(), "Exception: " + e);
+                    Toast.makeText(PracticeActivity.this, R.string.connection_error, Toast.LENGTH_LONG).show();
                 }
-
             }
         });
     }

@@ -14,11 +14,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements HttpPostRequest.HttpPostRequestCallback {
     private EditText etUserName;
     private EditText etPassword;
     private TextView tvError;
@@ -47,18 +48,49 @@ public class MainActivity extends AppCompatActivity {
         bnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = "https://vocubo.mpopp.net/ajax_requests/app_login.php";
+                String url = "https://vocubo.mpopp.net/requests/app_login.php";
                 String user = etUserName.getText().toString();
                 String pass = etPassword.getText().toString();
 
-                HttpPostRequest request = new HttpPostRequest(url);
+                HttpPostRequest request = new HttpPostRequest(MainActivity.this, url);
                 request.setParameter("user", user);
                 request.setParameter("pass", pass);
-                request.execute();
-
-                processResult(request.getResult());
+                try {
+                    request.execute();
+                } catch (Exception e) {
+                    Log.e(this.getClass().toString(), "Exception: " + e);
+                }
             }
         });
+    }
+
+    @Override
+    public void onRequestComplete(String result) {
+        try {
+            JSONObject jsonobject = new JSONObject(result);
+            if ((int)jsonobject.get("user_id") == -1) {
+                // login not successful
+
+                tvError.setVisibility(View.VISIBLE);
+                tvError.setTextColor(Color.RED);
+                tvError.setText(R.string.login_unsuccessful);
+            } else {
+                // login successful -> start new activity
+
+                SharedPreferences.Editor ed = pref.edit();
+
+                ed.putInt("user_id", (int)jsonobject.get("user_id"));
+                ed.putString("user_name", jsonobject.get("user_name").toString());
+                ed.putString("user_session", jsonobject.get("user_session").toString());
+                ed.apply();
+
+                Intent intent = new Intent(this, MenuActivity.class);
+                startActivity(intent);
+            }
+        } catch (Exception e) {
+            Log.e(this.getClass().getSimpleName(), "Exception: " + e);
+            Toast.makeText(this, R.string.login_failed, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -84,35 +116,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    public void processResult(String result) {
-
-        try {
-            JSONObject jsonobject = new JSONObject(result);
-            if ((int)jsonobject.get("user_id") == -1) {
-                // login not successful
-
-                tvError.setVisibility(View.VISIBLE);
-                tvError.setTextColor(Color.RED);
-                tvError.setText(R.string.login_unsuccessful);
-            } else {
-                // login successful -> start new activity
-
-                SharedPreferences.Editor ed = pref.edit();
-
-                ed.putInt("user_id", (int)jsonobject.get("user_id"));
-                ed.putString("user_name", jsonobject.get("user_name").toString());
-                ed.putString("user_session", jsonobject.get("user_session").toString());
-                ed.apply();
-
-                Intent intent = new Intent(this, MenuActivity.class);
-                startActivity(intent);
-            }
-        } catch (JSONException e) {
-            Log.e(this.getClass().getSimpleName(), "JSONException: " + e);
-            throw new RuntimeException(e);
-        }
     }
 
     @Override

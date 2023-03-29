@@ -12,12 +12,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpPostRequest extends AsyncTask<Void, Void, String> {
-    private String url;
-    private Map<String, String> parameters;
+    private final String url;
+    private final Map<String, String> parameters;
+    private final HttpPostRequestCallback callback;
 
-    public HttpPostRequest(String url) {
+    private final int timeout;
+
+    public HttpPostRequest(HttpPostRequestCallback callback, String url) {
+        this.callback = callback;
         this.url = url;
-        parameters = new HashMap<>();
+        this.parameters = new HashMap<>();
+
+        // default timeout is 5000 milliseconds
+        this.timeout = 5000;
+    }
+
+    public HttpPostRequest(HttpPostRequestCallback callback, String url, int timeout) {
+        this.callback = callback;
+        this.url = url;
+        this.parameters = new HashMap<>();
+        this.timeout = timeout;
     }
 
     public void setParameter(String key, String value) {
@@ -36,16 +50,23 @@ public class HttpPostRequest extends AsyncTask<Void, Void, String> {
             connection.setRequestProperty("Accept-Charset", "UTF-8");
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
+            connection.setConnectTimeout(timeout);
+            connection.setReadTimeout(timeout);
+
             OutputStream outputStream = connection.getOutputStream();
             StringBuilder builder = new StringBuilder();
+
             for (Map.Entry<String, String> entry : parameters.entrySet()) {
                 builder.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
             }
+
             String parameters = builder.toString();
             parameters = parameters.substring(0, parameters.length() - 1);
+
             outputStream.write(parameters.getBytes());
             outputStream.flush();
             outputStream.close();
+
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = connection.getInputStream();
@@ -81,12 +102,14 @@ public class HttpPostRequest extends AsyncTask<Void, Void, String> {
         return result;
     }
 
-    public String getResult() {
-        try {
-            return get();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+    @Override
+    protected void onPostExecute(String result) {
+        if (callback != null) {
+            callback.onRequestComplete(result);
         }
+    }
+
+    public interface HttpPostRequestCallback {
+        void onRequestComplete(String result);
     }
 }
