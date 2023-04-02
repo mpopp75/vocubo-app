@@ -77,6 +77,8 @@ public class MainActivity extends AppCompatActivity
             } else {
                 // login successful -> start new activity
 
+                Log.d(this.getClass().getSimpleName(), "Login: " + result);
+
                 SharedPreferences.Editor ed = pref.edit();
 
                 ed.putInt("user_id", (int)jsonobject.get("user_id"));

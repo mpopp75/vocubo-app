@@ -70,7 +70,7 @@ public class PracticeActivity extends AppCompatActivity
         String user_name = pref.getString("user_name", "");
         user_session = pref.getString("user_session", "");
 
-        tvLogin.setTextColor(Color.GREEN);
+        tvLogin.setTextColor(getResources().getColor(R.color.green));
         tvLogin.setText(getText(R.string.login) + ": " + user_name);
 
         nextQuestion();

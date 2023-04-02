@@ -13,6 +13,7 @@
         android:layout_marginTop="32dp"
         android:text="@string/login"
         android:textSize="24sp"
+        android:textColor="@color/green"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

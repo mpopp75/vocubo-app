@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="@string/login"
+        android:textColor="@color/green"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,9 +42,10 @@
         android:id="@+id/edAnswer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="16dp"
         android:ems="10"
+        android:hint="@string/enter_your_answer_here"
         android:inputType="textPersonName"
         android:minHeight="48dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -53,21 +55,20 @@
         android:id="@+id/bnSend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="64dp"
         android:text="@string/send"
         app:layout_constraintBottom_toBottomOf="@+id/edAnswer"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/edAnswer" />
+        app:layout_constraintTop_toTopOf="@+id/edAnswer" />
 
     <TextView
         android:id="@+id/tvResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:inputType="textMultiLine"
         android:textSize="16sp"
         android:visibility="invisible"
-        android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edAnswer" />
@@ -77,21 +78,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:layout_marginEnd="24dp"
         android:text="@string/next"
         android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/bnSend"
         app:layout_constraintTop_toBottomOf="@+id/tvResult" />
 
     <Button
         android:id="@+id/bnFinish"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
         android:text="@string/finish"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/bnNext"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/bnNext" />
+        app:layout_constraintStart_toStartOf="@+id/edAnswer"
+        app:layout_constraintTop_toBottomOf="@+id/tvResult" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
