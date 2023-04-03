@@ -38,12 +38,16 @@ public class MainActivity extends AppCompatActivity
 
         pref = getSharedPreferences("vocubo", 0);
 
-        // lets make life a bit easier for now; autofill user/password
-        Button bnFill = findViewById(R.id.bnFill);
-        bnFill.setOnClickListener(v -> {
-            etUserName.setText(FillValues.username);
-            etPassword.setText(FillValues.password);
-        });
+        String user_name = pref.getString("user_name", "");
+        String user_session = pref.getString("user_session", "");
+
+        // Check if user is already logged in
+        if (!user_name.equals("") && !user_session.equals("")) {
+            String url = "https://vocubo.mpopp.net/requests/app_checklogin.php";
+            HttpPostRequest request = new HttpPostRequest(this, url);
+            request.setParameter("session_id", user_session);
+            request.execute();
+        }
 
         bnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    // Login check
     @Override
     public void onRequestComplete(String result) {
         try {

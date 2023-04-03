@@ -22,6 +22,7 @@
     <string name="logout_failed">Logout failed</string>
     <string name="connection_error">Connection error</string>
     <string name="enter_your_answer_here">Enter your answer here</string>
+    <string name="dictionaries">Dictionaries</string>
 
     <string-array name="language_array">
         <item>System</item>
