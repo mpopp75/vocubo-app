@@ -4,25 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DictionariesActivity">
+    tools:context=".DictionariesListItemActivity">
 
-    <TextView
-        android:id="@+id/tvLogin"
+    <CheckBox
+        android:id="@+id/cbDictionary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/login"
-        android:textColor="@color/green"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="CheckBox"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ListView
-        android:id="@+id/lvDictionaries"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="76dp"
-        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/tvLanguages"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/cbDictionary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/cbDictionary" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
