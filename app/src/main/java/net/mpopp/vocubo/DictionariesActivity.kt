@@ -9,27 +9,39 @@ import android.view.MenuItem
 import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import net.mpopp.vocubo.HttpPostRequest.HttpPostRequestCallback
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-class DictionariesActivity : AppCompatActivity(), HttpPostRequestCallback {
+class DictionariesActivity : AppCompatActivity() {
     private var userSession: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dictionaries)
+
         val tvLogin = findViewById<TextView>(R.id.tvLogin)
         val pref = getSharedPreferences("vocubo", 0)
         val userName = pref.getString("user_name", "")
+
         userSession = pref.getString("user_session", "")
-        tvLogin.setTextColor(resources.getColor(R.color.green))
+        tvLogin.setTextColor(resources.getColor(R.color.green, null))
         tvLogin.text = getText(R.string.login).toString() + ": " + userName
-        val request =
-            HttpPostRequest(this, "https://vocubo.mpopp.net/requests/app_dictionaries.php")
-        request.setParameter("session_id", userSession.toString())
-        request.setParameter("action", "dictionary_list")
-        request.execute()
+
+        val client = HttpClient("https://vocubo.mpopp.net/requests/app_dictionaries.php")
+        val params = mapOf(
+            "session_id" to userSession!!,
+            "action" to "dictionary_list"
+        )
+
+        client.post(params, object : HttpClient.Callback {
+            override fun onSuccess(response: String) {
+                getDictionaryList(response)
+            }
+
+            override fun onError(e: Exception) {
+                Log.e(this.javaClass.simpleName, "Exception: $e")
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -52,7 +64,7 @@ class DictionariesActivity : AppCompatActivity(), HttpPostRequestCallback {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onRequestComplete(result: String?) {
+    private fun getDictionaryList(result: String?) {
         Log.d(this.javaClass.simpleName, "result: $result")
         runOnUiThread(object : Runnable {
             override fun run() {

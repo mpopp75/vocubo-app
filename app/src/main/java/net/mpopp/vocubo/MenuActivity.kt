@@ -7,47 +7,58 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import net.mpopp.vocubo.HttpPostRequest.HttpPostRequestCallback
 
-class MenuActivity : AppCompatActivity(), HttpPostRequestCallback {
+class MenuActivity : AppCompatActivity() {
     private var userSession: String? = null
     private var pref: SharedPreferences? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
+
         val tvLogin = findViewById<TextView>(R.id.tvLogin)
         val bnPractice = findViewById<Button>(R.id.bnPractice)
         val bnDictionaries = findViewById<Button>(R.id.bnDictionaries)
         val bnLogout = findViewById<Button>(R.id.bnLogout)
-        bnPractice.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                Log.d(this.javaClass.simpleName, "Practice button clicked")
-                val intent = Intent(this@MenuActivity, PracticeActivity::class.java)
-                startActivity(intent)
-            }
-        })
+
+        bnPractice.setOnClickListener {
+            Log.d(this.javaClass.simpleName, "Practice button clicked")
+
+            val intent = Intent(this@MenuActivity, PracticeActivity::class.java)
+            startActivity(intent)
+        }
+
         bnDictionaries.setOnClickListener {
             val intent = Intent(this@MenuActivity, DictionariesActivity::class.java)
             startActivity(intent)
         }
-        bnLogout.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                Log.d(this.javaClass.simpleName, "Logout button clicked")
-                val url = "https://vocubo.mpopp.net/requests/app_logout.php"
-                val request = HttpPostRequest(this@MenuActivity, url)
-                request.setParameter("session_id", userSession!!)
-                request.execute()
-            }
-        })
+
+        bnLogout.setOnClickListener {
+            val client = HttpClient("https://vocubo.mpopp.net/requests/app_logout.php")
+            val params = mapOf(
+                "session_id" to userSession!!
+            )
+
+            client.post(params, object : HttpClient.Callback {
+                override fun onSuccess(response: String) {
+                    logout(response)
+                }
+
+                override fun onError(e: Exception) {
+                    Log.e(this.javaClass.simpleName, "Exception: $e")
+                }
+            })
+        }
+
         pref = getSharedPreferences("vocubo", 0)
         val userName = pref!!.getString("user_name", "")
         userSession = pref!!.getString("user_session", "")
-        tvLogin.setTextColor(resources.getColor(R.color.green))
+
+        tvLogin.setTextColor(resources.getColor(R.color.green, null))
         tvLogin.text = getText(R.string.login).toString() + ": " + userName
     }
 
@@ -71,7 +82,7 @@ class MenuActivity : AppCompatActivity(), HttpPostRequestCallback {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onRequestComplete(result: String?) {
+    private fun logout(result: String?) {
         Log.i(this.javaClass.simpleName, "result: $result")
         try {
             if (result == "1") {

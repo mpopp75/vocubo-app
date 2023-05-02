@@ -13,12 +13,12 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import net.mpopp.vocubo.HttpPostRequest.HttpPostRequestCallback
 import org.json.JSONObject
 
-class PracticeActivity : AppCompatActivity(), HttpPostRequestCallback {
+class PracticeActivity : AppCompatActivity() {
     private var userId = 0
     private var userSession: String? = null
+
     private var tvQuestion: TextView? = null
     private var tvHint: TextView? = null
     private var edAnswer: EditText? = null
@@ -26,12 +26,14 @@ class PracticeActivity : AppCompatActivity(), HttpPostRequestCallback {
     private var tvResult: TextView? = null
     private var bnNext: Button? = null
     private var bnFinish: Button? = null
+
     private var questionId = 0
-    private var action: String? = null
     private val url = "https://vocubo.mpopp.net/requests/app_practice.php"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_practice)
+
         val tvLogin = findViewById<TextView>(R.id.tvLogin)
         tvQuestion = findViewById(R.id.tvQuestion)
         tvHint = findViewById(R.id.tvHint)
@@ -40,6 +42,7 @@ class PracticeActivity : AppCompatActivity(), HttpPostRequestCallback {
         tvResult = findViewById(R.id.tvResult)
         bnNext = findViewById(R.id.bnNext)
         bnFinish = findViewById(R.id.bnFinish)
+
         bnNext!!.setOnClickListener {
             edAnswer!!.visibility = View.VISIBLE
             edAnswer!!.setText("")
@@ -47,16 +50,21 @@ class PracticeActivity : AppCompatActivity(), HttpPostRequestCallback {
             tvResult!!.visibility = View.INVISIBLE
             bnNext!!.visibility = View.INVISIBLE
             bnFinish!!.visibility = View.INVISIBLE
+
             nextQuestion()
         }
+
         bnSend!!.setOnClickListener { checkAnswer() }
         bnFinish!!.setOnClickListener { returnToMainActivity() }
+
         val pref = getSharedPreferences("vocubo", 0)
         userId = pref.getInt("user_id", -1)
         val userName = pref.getString("user_name", "")
         userSession = pref.getString("user_session", "")
-        tvLogin.setTextColor(resources.getColor(R.color.green))
+
+        tvLogin.setTextColor(resources.getColor(R.color.green, null))
         tvLogin.text = getText(R.string.login).toString() + ": " + userName
+
         nextQuestion()
     }
 
@@ -81,11 +89,21 @@ class PracticeActivity : AppCompatActivity(), HttpPostRequestCallback {
     }
 
     private fun nextQuestion() {
-        action = "question"
-        val request = HttpPostRequest(this, url)
-        request.setParameter("session_id", userSession!!)
-        request.setParameter("action", action!!)
-        request.execute()
+        val client = HttpClient(url)
+        val params = mapOf(
+            "session_id" to userSession!!,
+            "action" to "question"
+        )
+
+        client.post(params, object : HttpClient.Callback {
+            override fun onSuccess(response: String) {
+                processQuestionResult(response)
+            }
+
+            override fun onError(e: Exception) {
+                Log.e(this.javaClass.simpleName, "Exception: $e")
+            }
+        })
     }
 
     private fun processQuestionResult(result: String?) {
@@ -111,37 +129,40 @@ class PracticeActivity : AppCompatActivity(), HttpPostRequestCallback {
 
     private fun checkAnswer() {
         Log.d(this.javaClass.simpleName, "checkAnswer()")
-        action = "answer"
-        val answer = edAnswer!!.text.toString()
-        val request = HttpPostRequest(this, url)
-        request.setParameter("session_id", userSession!!)
-        request.setParameter("action", action!!)
-        request.setParameter("question_id", questionId.toString())
-        request.setParameter("answer", answer)
-        request.execute()
-    }
 
-    override fun onRequestComplete(result: String?) {
-        if (action == "question") {
-            processQuestionResult(result)
-        } else {
-            processAnswerResult(result)
-        }
+        val client = HttpClient(url)
+        val params = mapOf(
+            "session_id" to userSession!!,
+            "action" to "answer",
+            "question_id" to questionId.toString(),
+            "answer" to edAnswer!!.text.toString()
+        )
+
+        client.post(params, object : HttpClient.Callback {
+            override fun onSuccess(response: String) {
+                processAnswerResult(response)
+            }
+
+            override fun onError(e: Exception) {
+                Log.e(this.javaClass.simpleName, "Exception: $e")
+            }
+        })
     }
 
     private fun processAnswerResult(result: String?) {
         runOnUiThread(object : Runnable {
             override fun run() {
                 try {
-                    val jsonobject = JSONObject(result!!)
-                    Log.d(this.javaClass.simpleName, "httpCallback() - answer")
-                    val correct = jsonobject.getString("correct")
-                    val correctAnswer = jsonobject.getString("correct_answer")
+                    val jsonObject = JSONObject(result!!)
+                    val correct = jsonObject.getString("correct")
+                    val correctAnswer = jsonObject.getString("correct_answer")
+
                     edAnswer!!.visibility = View.INVISIBLE
                     bnSend!!.visibility = View.INVISIBLE
                     tvResult!!.visibility = View.VISIBLE
                     bnNext!!.visibility = View.VISIBLE
                     bnFinish!!.visibility = View.VISIBLE
+
                     if (correct == "correct") {
                         tvResult!!.setTextColor(Color.GREEN)
                         tvResult!!.setText(R.string.answer_correct)

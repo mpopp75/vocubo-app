@@ -14,51 +14,68 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import net.mpopp.vocubo.HttpPostRequest.HttpPostRequestCallback
 import org.json.JSONObject
 
-class MainActivity : AppCompatActivity(), HttpPostRequestCallback {
+class MainActivity : AppCompatActivity() {
     private var etUserName: EditText? = null
     private var etPassword: EditText? = null
+    private var bnLogin: Button? = null
     private var tvError: TextView? = null
+
     private var pref: SharedPreferences? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         etUserName = findViewById(R.id.etUsername)
         etPassword = findViewById(R.id.etPassword)
-        val bnLogin = findViewById<Button>(R.id.bnLogin)
+        bnLogin = findViewById(R.id.bnLogin)
         tvError = findViewById(R.id.tvError)
+
+        bnLogin!!.setOnClickListener {
+            val client = HttpClient("https://vocubo.mpopp.net/requests/app_login.php")
+            val params = mapOf(
+                "user" to etUserName!!.text.toString(),
+                "pass" to etPassword!!.text.toString()
+            )
+
+            client.post(params, object : HttpClient.Callback {
+                override fun onSuccess(response: String) {
+                    loginCheck(response)
+                }
+
+                override fun onError(e: Exception) {
+                    Log.e(this.javaClass.simpleName, "Exception: $e")
+                }
+            })
+        }
+
         pref = getSharedPreferences("vocubo", 0)
         val userName = pref!!.getString("user_name", "")
         val userSession = pref!!.getString("user_session", "")
 
         // Check if user is already logged in
         if (userName != "" && userSession != "") {
-            val url = "https://vocubo.mpopp.net/requests/app_checklogin.php"
-            val request = HttpPostRequest(this, url)
-            request.setParameter("session_id", userSession!!)
-            request.execute()
-        }
-        bnLogin.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                val url = "https://vocubo.mpopp.net/requests/app_login.php"
-                val user = etUserName!!.text.toString()
-                val pass = etPassword!!.text.toString()
-                val request = HttpPostRequest(this@MainActivity, url)
-                request.setParameter("user", user)
-                request.setParameter("pass", pass)
-                try {
-                    request.execute()
-                } catch (e: Exception) {
-                    Log.e(this.javaClass.toString(), "Exception: $e")
+            val client = HttpClient("https://vocubo.mpopp.net/requests/app_checklogin.php")
+            val params = mapOf(
+                "session_id" to userSession!!
+            )
+
+            client.post(params, object : HttpClient.Callback {
+                override fun onSuccess(response: String) {
+                    loginCheck(response)
                 }
-            }
-        })
+
+                override fun onError(e: Exception) {
+                    Log.e(this.javaClass.simpleName, "Exception: $e")
+                }
+            })
+        }
     }
 
     // Login check
-    override fun onRequestComplete(result: String?) {
+    private fun loginCheck(result: String?) {
         try {
             val jsonObject = JSONObject(result!!)
             if (jsonObject["user_id"] as Int == -1) {
@@ -69,11 +86,13 @@ class MainActivity : AppCompatActivity(), HttpPostRequestCallback {
             } else {
                 // login successful -> start new activity
                 Log.d(this.javaClass.simpleName, "Login: $result")
+
                 val ed = pref!!.edit()
                 ed.putInt("user_id", jsonObject["user_id"] as Int)
                 ed.putString("user_name", jsonObject["user_name"].toString())
                 ed.putString("user_session", jsonObject["user_session"].toString())
                 ed.apply()
+
                 val intent = Intent(this, MenuActivity::class.java)
                 startActivity(intent)
             }
