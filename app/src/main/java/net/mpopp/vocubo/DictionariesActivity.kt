@@ -14,7 +14,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 class DictionariesActivity : AppCompatActivity() {
-    private var userSession: String? = null
+    private lateinit var userSession: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dictionaries)
@@ -23,13 +23,13 @@ class DictionariesActivity : AppCompatActivity() {
         val pref = getSharedPreferences("vocubo", 0)
         val userName = pref.getString("user_name", "")
 
-        userSession = pref.getString("user_session", "")
+        userSession = pref.getString("user_session", "").toString()
         tvLogin.setTextColor(resources.getColor(R.color.green, null))
         tvLogin.text = getText(R.string.login).toString() + ": " + userName
 
         val client = HttpClient("https://vocubo.mpopp.net/requests/app_dictionaries.php")
         val params = mapOf(
-            "session_id" to userSession!!,
+            "session_id" to userSession,
             "action" to "dictionary_list"
         )
 

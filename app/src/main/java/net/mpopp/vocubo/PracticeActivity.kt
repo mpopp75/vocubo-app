@@ -16,16 +16,16 @@ import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 
 class PracticeActivity : AppCompatActivity() {
-    private var userId = 0
-    private var userSession: String? = null
+    private var userId: Int = 0
+    private lateinit var userSession: String
 
-    private var tvQuestion: TextView? = null
-    private var tvHint: TextView? = null
-    private var edAnswer: EditText? = null
-    private var bnSend: Button? = null
-    private var tvResult: TextView? = null
-    private var bnNext: Button? = null
-    private var bnFinish: Button? = null
+    private lateinit var tvQuestion: TextView
+    private lateinit var tvHint: TextView
+    private lateinit var edAnswer: EditText
+    private lateinit var bnSend: Button
+    private lateinit var tvResult: TextView
+    private lateinit var bnNext: Button
+    private lateinit var bnFinish: Button
 
     private var questionId = 0
     private val url = "https://vocubo.mpopp.net/requests/app_practice.php"
@@ -43,24 +43,24 @@ class PracticeActivity : AppCompatActivity() {
         bnNext = findViewById(R.id.bnNext)
         bnFinish = findViewById(R.id.bnFinish)
 
-        bnNext!!.setOnClickListener {
-            edAnswer!!.visibility = View.VISIBLE
-            edAnswer!!.setText("")
-            bnSend!!.visibility = View.VISIBLE
-            tvResult!!.visibility = View.INVISIBLE
-            bnNext!!.visibility = View.INVISIBLE
-            bnFinish!!.visibility = View.INVISIBLE
+        bnNext.setOnClickListener {
+            edAnswer.visibility = View.VISIBLE
+            edAnswer.setText("")
+            bnSend.visibility = View.VISIBLE
+            tvResult.visibility = View.INVISIBLE
+            bnNext.visibility = View.INVISIBLE
+            bnFinish.visibility = View.INVISIBLE
 
             nextQuestion()
         }
 
-        bnSend!!.setOnClickListener { checkAnswer() }
-        bnFinish!!.setOnClickListener { returnToMainActivity() }
+        bnSend.setOnClickListener { checkAnswer() }
+        bnFinish.setOnClickListener { returnToMainActivity() }
 
         val pref = getSharedPreferences("vocubo", 0)
         userId = pref.getInt("user_id", -1)
         val userName = pref.getString("user_name", "")
-        userSession = pref.getString("user_session", "")
+        userSession = pref.getString("user_session", "").toString()
 
         tvLogin.setTextColor(resources.getColor(R.color.green, null))
         tvLogin.text = getText(R.string.login).toString() + ": " + userName
@@ -91,7 +91,7 @@ class PracticeActivity : AppCompatActivity() {
     private fun nextQuestion() {
         val client = HttpClient(url)
         val params = mapOf(
-            "session_id" to userSession!!,
+            "session_id" to userSession,
             "action" to "question"
         )
 
@@ -113,8 +113,8 @@ class PracticeActivity : AppCompatActivity() {
                     val jsonObject = JSONObject(result!!)
                     Log.d(this.javaClass.simpleName, "httpCallback() - question")
                     questionId = jsonObject.getInt("id")
-                    tvQuestion!!.text = jsonObject.getString("word_base")
-                    tvHint!!.text = jsonObject.getString("hints")
+                    tvQuestion.text = jsonObject.getString("word_base")
+                    tvHint.text = jsonObject.getString("hints")
                 } catch (e: Exception) {
                     Log.e(this.javaClass.simpleName, "Exception: $e")
                     Toast.makeText(
@@ -132,10 +132,10 @@ class PracticeActivity : AppCompatActivity() {
 
         val client = HttpClient(url)
         val params = mapOf(
-            "session_id" to userSession!!,
+            "session_id" to userSession,
             "action" to "answer",
             "question_id" to questionId.toString(),
-            "answer" to edAnswer!!.text.toString()
+            "answer" to edAnswer.text.toString()
         )
 
         client.post(params, object : HttpClient.Callback {
@@ -157,21 +157,21 @@ class PracticeActivity : AppCompatActivity() {
                     val correct = jsonObject.getString("correct")
                     val correctAnswer = jsonObject.getString("correct_answer")
 
-                    edAnswer!!.visibility = View.INVISIBLE
-                    bnSend!!.visibility = View.INVISIBLE
-                    tvResult!!.visibility = View.VISIBLE
-                    bnNext!!.visibility = View.VISIBLE
-                    bnFinish!!.visibility = View.VISIBLE
+                    edAnswer.visibility = View.INVISIBLE
+                    bnSend.visibility = View.INVISIBLE
+                    tvResult.visibility = View.VISIBLE
+                    bnNext.visibility = View.VISIBLE
+                    bnFinish.visibility = View.VISIBLE
 
                     if (correct == "correct") {
-                        tvResult!!.setTextColor(Color.GREEN)
-                        tvResult!!.setText(R.string.answer_correct)
+                        tvResult.setTextColor(Color.GREEN)
+                        tvResult.setText(R.string.answer_correct)
                     } else {
-                        tvResult!!.setTextColor(Color.RED)
-                        val output = """${getString(R.string.your_answer)}: ${edAnswer!!.text}
+                        tvResult.setTextColor(Color.RED)
+                        val output = """${getString(R.string.your_answer)}: ${edAnswer.text}
 
 ${getString(R.string.answer_false)} $correctAnswer"""
-                        tvResult!!.text = output
+                        tvResult.text = output
                     }
                 } catch (e: Exception) {
                     Log.e(this.javaClass.simpleName, "Exception: $e")

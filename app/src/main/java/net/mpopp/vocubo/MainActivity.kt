@@ -17,10 +17,10 @@ import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
-    private var etUserName: EditText? = null
-    private var etPassword: EditText? = null
-    private var bnLogin: Button? = null
-    private var tvError: TextView? = null
+    private lateinit var etUserName: EditText
+    private lateinit var etPassword: EditText
+    private lateinit var bnLogin: Button
+    private lateinit var tvError: TextView
 
     private var pref: SharedPreferences? = null
 
@@ -33,11 +33,11 @@ class MainActivity : AppCompatActivity() {
         bnLogin = findViewById(R.id.bnLogin)
         tvError = findViewById(R.id.tvError)
 
-        bnLogin!!.setOnClickListener {
+        bnLogin.setOnClickListener {
             val client = HttpClient("https://vocubo.mpopp.net/requests/app_login.php")
             val params = mapOf(
-                "user" to etUserName!!.text.toString(),
-                "pass" to etPassword!!.text.toString()
+                "user" to etUserName.text.toString(),
+                "pass" to etPassword.text.toString()
             )
 
             client.post(params, object : HttpClient.Callback {
@@ -80,9 +80,9 @@ class MainActivity : AppCompatActivity() {
             val jsonObject = JSONObject(result!!)
             if (jsonObject["user_id"] as Int == -1) {
                 // login not successful
-                tvError!!.visibility = View.VISIBLE
-                tvError!!.setTextColor(Color.RED)
-                tvError!!.setText(R.string.login_unsuccessful)
+                tvError.visibility = View.VISIBLE
+                tvError.setTextColor(Color.RED)
+                tvError.setText(R.string.login_unsuccessful)
             } else {
                 // login successful -> start new activity
                 Log.d(this.javaClass.simpleName, "Login: $result")
